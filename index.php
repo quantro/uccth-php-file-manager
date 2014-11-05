@@ -6,7 +6,7 @@
 	define("SiteAccess","qwerty12345");
 
 	if(isset($_COOKIE["access_login"])){
-		if($_COOKIE["access_login"]!=md5(SiteAccess){
+		if($_COOKIE["access_login"]!=md5(SiteAccess)){
 			setcookie("access_login","",time()-3600*24*30*12);
 			echo "forbiden refresh page";
 			header("location:".basename(__FILE__));
