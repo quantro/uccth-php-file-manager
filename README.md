@@ -5,8 +5,11 @@ uccth php file manager is a simple server side file manager from PHP, you can ac
 
 Version 0.1 [Beta]
 ------------------
-# RELEASE DATE  : November 06, 2014
-# WHAT'S NEW    : - Create Directory
-                  - Delete Directory/File
-                  - Upload File
-                  - Rename Directory/File
+RELEASE DATE  : 
+November 06, 2014
+
+WHAT'S NEW    : 
+* Create Directory
+* Delete Directory/File
+* Upload File
+* Rename Directory/File
