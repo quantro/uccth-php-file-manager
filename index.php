@@ -5,7 +5,14 @@
 	define("SiteDescription", "simple server file processing");
 	define("SiteAccess","qwerty12345");
 
-
+	if(isset($_COOKIE["access_login"])){
+		if($_COOKIE["access_login"]!=md5(SiteAccess){
+			setcookie("access_login","",time()-3600*24*30*12);
+			echo "forbiden refresh page";
+			header("location:".basename(__FILE__));
+			exit();
+		}
+	}
 
 	/*the function*/
 	function asBytes($ini_v) {
@@ -922,7 +929,7 @@
 						loadingEnd();
 						forClickable();
 					});
-					window.history.pushState('obj', 'newtitle', 'index_t.php?dir='+dir.replace('./', ''));
+					window.history.pushState('obj', 'newtitle', '?dir='+dir.replace('./', ''));
 				});
 				$(document).on("click",".linkAjax",function(e){
 					e.preventDefault();
