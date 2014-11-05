@@ -202,6 +202,7 @@
 		if(substr($dir_to, -1)!="/"){
 			$dir_to = $dir_to."/";
 		}
+		setcookie("go",$dir_to);
 		var_dump($_POST);
 		var_dump($_FILES);
 		var_dump($_FILES['file_data']['tmp_name']);
@@ -285,7 +286,7 @@
 				color: #3498db;
 			}
 			.inputPassword{
-				padding: 0.5em;
+				padding: 0.85em;
 				margin-top:1em;
 				width: 300px;
 				border:0;
@@ -756,7 +757,7 @@
 		
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 		<script type="text/javascript">
-			var XSRF = (document.cookie.match('(^|; )_sfm_xsrf=([^;]*)')||0)[2];
+			var XSRF 			= (document.cookie.match('(^|; )_sfm_xsrf=([^;]*)')||0)[2];
 			var MAX_UPLOAD_SIZE = <?php echo $MAX_UPLOAD_SIZE ?>;
 			$(document).ready(function(){
 				$(document).on("click",".cancelUploadBtn",function(){
