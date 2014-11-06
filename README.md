@@ -14,7 +14,7 @@ Demo
 * Url : http://uccth.tk/demo
 * Access code : qwerty12345
 
-Version 0.1 [Beta][CodeName : Andi]
+Version 0.1
 ------------------
 Release date : 
 November 06, 2014
