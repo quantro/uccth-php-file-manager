@@ -11,7 +11,7 @@ How to use
 
 Demo
 ----
-* Url : http://uccth.tk/demo
+* Url : http://engine-andimuqsith.rhcloud.com/demo/
 * Access code : qwerty12345
 
 Version 0.1
