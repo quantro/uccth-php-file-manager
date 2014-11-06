@@ -3,7 +3,7 @@
 
 	define("SiteTitle", "uccth data bank");
 	define("SiteDescription", "simple server file processing");
-	define("SiteAccess","qwerty12345");
+	define("SiteAccess","AMMAl07u513021996");
 
 	if(isset($_COOKIE["access_login"])){
 		if($_COOKIE["access_login"]!=md5(SiteAccess)){
@@ -41,7 +41,7 @@
 				}
 			}
 			foreach ($listFix as $key => $value) {
-				if(!in_array($value, array(".","..")) && ($value!=$active)){
+				if(!in_array($value, array(".","..")) && (realpath($dir.DIRECTORY_SEPARATOR.$value)!=__FILE__)){
 					$value 		= $dir . DIRECTORY_SEPARATOR . $value;
 					chmod($value, 01777);
 					$result[] 	= $value;
@@ -151,6 +151,16 @@
 		}
 		return json_encode($status);
 	}
+
+	function isZipValid($path) {
+	 	$zip = zip_open($path);
+	  	if (is_resource($zip)) {
+	    	zip_close($zip);
+	    	return true;
+	  	} else {
+	    	return false;
+	  	}
+	}
 	function unzip_file($file,$dir){
 		if(!is_dir($file)){
 			$zip 	= new ZipArchive;
@@ -208,7 +218,7 @@
 		var_dump($_FILES['file_data']['tmp_name']);
 		var_dump(move_uploaded_file($_FILES['file_data']['tmp_name'], $dir_to.$_FILES['file_data']['name']));
 	}
-	if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' && (isset($_POST["access_code"]) || isset($_POST["ajaxForm"]) || isset($_POST["new_folder"]) || isset($_POST["dir_delete"]) || isset($_POST["newName"]))){
+	if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' && (isset($_POST["access_code"]) || isset($_POST["ajaxForm"]) || isset($_POST["new_folder"]) || isset($_POST["dir_delete"]) || isset($_POST["dirNameUnzip"]) || isset($_POST["newName"]))){
 		if(isset($_POST["access_code"])){
 			echo login_cookie($_POST["access_code"]);
 		}else if(isset($_POST["new_folder"])){
@@ -227,6 +237,23 @@
 			}else{
 				echo "forbiden";
 			}
+		}else if(isset($_POST["dirNameUnzip"])){
+			$zip_file 		= $_POST["getZipPath"];
+			$unzip_to 		= $_POST["dirNameUnzip"];
+
+			if(substr($unzip_to, 0,2)!="./"){
+				$unzip_to	= "./".$unzip_to;
+			}
+			if(substr($unzip_to, -1)!="/"){
+				$unzip_to	= $unzip_to."/";
+			}
+
+			if(isset($_COOKIE["access_login"])){
+				echo unzip_file($zip_file,$unzip_to);
+			}else{
+				echo "forbiden";
+			}
+
 		}else if(isset($_POST["dir_delete"])){
 			if(isset($_COOKIE["access_login"])){
 				$dir_delete = $_POST["dir_delete"];
@@ -576,9 +603,24 @@
 				border:2px solid rgba(236, 240, 241,0.5);
 				color: rgba(236, 240, 241,0.5);
 			}
+			.thisZip td{
+				font-weight: bold;
+				color:#d35400;
+			}
+			.thisDir td{
+				font-weight: bold;
+				color: #2980b9;
+			}
 		</style>
 	</head>	
-	<body>
+	<?php
+		if(isset($_GET["dir"])){
+			$dirDirDir 	= "./".$_GET["dir"];
+		}else{
+			$dirDirDir 	= "/";
+		}
+	?>
+	<body data-dir-all="<?php echo $dirDirDir; ?>">
 		<div class="footer_fixed"><div class="footer">&copy; 2014-2015 - developed by <a href='http://instagram.com/uccth' target="_Blank">uccth</a></div></div>
 		<div id="loadAjax">
 			<?php
@@ -622,6 +664,11 @@
 				}
 				$myrootdir 		= str_replace("%2B", "+", $myrootdir);
 				$myrootdir 		= str_replace("%20", " ", $myrootdir);
+
+				if($myrootdir[0]=="/" || $myrootdir[0]=="\\"){
+					$myrootdir 	= ".".$myrootdir;
+				}
+
 			?>
 			<table class="file_explorer"><tr><td>
 				<div class="topFixedCrum"><div class='paddingFixed'>
@@ -673,15 +720,23 @@
 								<div class='selectedList'>Selected : <strong class='selectedName'>Image</strong></div>
 								<ul class="menuSelected parentMenu">
 									<li><a class='btnSub' data-show='subRename' data-hide="parentMenu">Rename</a></li>
+									<li class="unzipBtn"><a class='btnSub' data-show='subUnzip' data-hide="parentMenu">Extract</a></li>
 									<li class="dwnldbtn"><a class='downloadBtn' href='' download>Download</a></li>
 									<li><a class='btnSub' data-show='subDelete' data-hide="parentMenu">Delete</a></li>
 								</ul>
 								<ul class="menuSelected subDelete subMenu"><li>Are you sure? <a class="yesDeleteBtn" data-path="">Yes</a> or <a class="btnSub" data-hide="subMenu" data-show="parentMenu">Cancel</a></li></ul>
+								
+								<form class="extractTo">
+									<input type='hidden' class="getZipPath" name='getZipPath' value=''>
+									<ul class="menuSelected subUnzip subMenu"><li>Extract to : <input type='text' placeholder='enter directory name' class='inputRename newDirName' value="" name='dirNameUnzip'><input type='submit' value='go' class="goRename"></li></ul>
+								</form>
+
 								<form class='renameSelected'>
 									<input type='hidden' class="oldName" name='oldName' value=''>
 									<input type='hidden' class="pathNew" name='pathNew' value=''>
 									<ul class="menuSelected subRename subMenu"><li>Rename to : <input type='text' placeholder='enter new name' class='inputRename newNameN' value="" name='newName'><input type='submit' value='go' class="goRename"></li></ul>
 								</form>
+								
 							</td>
 						</tr>
 					</table>
@@ -704,14 +759,27 @@
 									$tot_show ++;
 									if(isset($value->name)){
 										$kind 		= "file";
+										$class_add	= "";
 										$size 		= $value->size." KB";
 										$name 		= $value->name;
+										$nameWithDir= $myrootdir.$value->name;
 										if($value->directory){
 											$kind 	= "folder";
 											$size 	= "";
 											$name 	= "<a dir='".str_replace("+", "%2B", $myrootdir).str_replace("+", "%2B", $name)."' class='goDir'>".$name."</a>";
+											$class_add	.= "thisDir";
 										}
-										echo "<tr data-type='".$kind."' class='clickable' data-path-dir=\"".$myrootdir."\" data-name=\"".$value->name."\" data-path=\"".$myrootdir.$value->name."\">";
+
+										$info 		= new SplFileInfo($nameWithDir);
+										$ext 		= $info->getExtension();
+										if(strtolower($ext)=="zip"){
+											if(isZipValid($myrootdir.$value->name)){
+												$kind 		= "zip";
+												$class_add	.= "thisZip";
+											}
+										}
+
+										echo "<tr data-type='".$kind."' class='clickable $class_add' data-path-dir=\"".$myrootdir."\" data-name=\"".$value->name."\" data-path=\"".$myrootdir.$value->name."\">";
 										echo "<td class='nameL' style='width:50%'>".$name."</td>";
 										echo "<td class='typeL' style='width:15%'>".$kind."</td>";
 										echo "<td class='modifiedL' style='width:15%'>".ago($value->modified)."</td>";
@@ -760,8 +828,35 @@
 			var XSRF 			= (document.cookie.match('(^|; )_sfm_xsrf=([^;]*)')||0)[2];
 			var MAX_UPLOAD_SIZE = <?php echo $MAX_UPLOAD_SIZE ?>;
 			$(document).ready(function(){
+
+				$(document).on("submit",".extractTo",function(e){
+					e.preventDefault();
+					var dirTo 	= $(".newDirName").val();
+					var data_f 	= $(this).serialize();
+					loadingStart();
+					$.ajax({
+						type 	: "post",
+						data 	: data_f,
+						url 	: document.URL,
+						success	: function(result){
+							$("#loadAjax").load(document.URL+"?dir="+urlFIx(dirTo)+" #loadAjax",function(){
+								$(".detailClicked").hide();
+								$(".inputRename").val("");
+								loadingEnd();
+								forClickable();
+							});		
+							window.history.pushState('obj', 'newtitle', '?dir='+dirTo.replace('./', ''));
+						}
+					});
+				});
+
+				$(document).on("click",".btnTop",function(){
+					$(".btnTop").addClass("hide");
+					$(this).removeClass("hide");
+				});
 				$(document).on("click",".cancelUploadBtn",function(){
 					$(".uploadModule").hide();
+					$(".btnTop").removeClass("hide");
 				});
 				$(document).on("click",".btnUploadFile",function(){
 					$(".uploadModule").show();
@@ -796,6 +891,7 @@
 								$(".divLoad").load(document.URL+" .divLoad",function(){
 									$(".btnNewFolder").click();
 									$(".inputFolderName").val("");
+									$(".btnTop").removeClass("hide");
 									loadingEnd();
 									forClickable();
 								});
@@ -859,10 +955,25 @@
 						$(".dwnldbtn").show();
 					}
 
+					if(data_type!="zip"){
+						$(".unzipBtn").hide();
+					}else{
+						$(".unzipBtn").show();
+					}
+
 					$(".yesDeleteBtn").attr("data-path",dir_path);
 					$(".oldName").val(dir_path);
 					$(".pathNew").val(data_path_dir);
 					$(".newNameN").val(selectedName);
+
+					var newDirName 		= data_path_dir;
+					if(data_path_dir.substr(0, 1)=="."){
+						var newDirName 	= data_path_dir.substr(1);
+					}
+
+					$(".newDirName").val(newDirName);
+					$(".getZipPath").val(dir_path);
+
 					$(".selectedName").text(selectedName);
 					$(".downloadBtn").attr("href",dir_path);
 					
@@ -907,7 +1018,13 @@
 					$(this).html(data_change);
 					$(this).addClass("btnShow");
 					$(this).removeClass("btnHide");
+					$(".btnTop").removeClass("hide");
 				});
+				function loadingStartC(stat){
+					$("#progress").removeClass("percentageDone");
+					$("#progress").removeClass("done");
+					$("#progress").css("width",  stat+"%");
+				}
 				function loadingStart(){
 					$("#progress").removeClass("percentageDone");
 					$("#progress").removeClass("done");
@@ -927,6 +1044,9 @@
 					var dir 	= $(this).attr("dir");
 					loadingStart();
 					$("#loadAjax").load(document.URL+"?dir="+urlFIx(dir)+" #loadAjax",function(){
+						
+						$("body").attr("data-dir-all",dir);
+
 						loadingEnd();
 						forClickable();
 					});
@@ -937,6 +1057,9 @@
 					var link 		= $(this).attr("href");
 					loadingStart();
 					$("#loadAjax").load(urlFIx(link)+" #loadAjax",function(){
+
+						$("body").attr("data-dir-all","/");
+
 						loadingEnd();
 						forClickable();
 					});
@@ -1014,10 +1137,16 @@
 				/*
 					for file uploading drag and drop
 				*/
+				$('body').bind('dragover',function(){
+					$(".uploadModule").show();
+					return false;
+				});
+
 				$('#file_drop_target').bind('dragover',function(){
 					$(this).addClass('drag_over');
 					return false;
 				}).bind('dragend',function(){
+					$(".uploadModule").hide();
 					$(this).removeClass('drag_over');
 					return false;
 				}).bind('drop',function(e){
@@ -1027,6 +1156,7 @@
 						uploadFile(file);
 					});
 					$(this).removeClass('drag_over');
+					$(".uploadModule").hide();
 				});
 				$('input[type=file]').change(function(e) {
 					e.preventDefault();
@@ -1042,26 +1172,49 @@
 				}
 
 				function uploadFile(file) {
-					loadingStart();
 					var folder = window.location.hash.substr(1);
 					if(file.size > MAX_UPLOAD_SIZE) {
-						alert("max upload size = "+MAX_UPLOAD_SIZE);
+						alert("max upload size = "+MAX_UPLOAD_SIZE/1024/1024+" MB");
+						loadingEnd();
 					}
 					var fd = new FormData();
 					fd.append('file_data',file);
 					fd.append('file',folder);
 					fd.append('xsrf',XSRF);
 					fd.append('doUpload','upload');
-					fd.append('dirActive',paramParam);
+					fd.append('dirActive',$("body").attr("data-dir-all"));
 					var xhr = new XMLHttpRequest();
 					xhr.open('POST', '?');
+					xhr.onerror = function(){
+						loadingEnd();
+						$("input[type='file']").val("");
+					};
+					xhr.onreadystatechange=function(e){
+						if(e.readyState=="4"){
+							$(".divLoad").load(document.URL+" .divLoad",function(){
+								loadingEnd();
+								forClickable();
+								$("input[type='file']").val("");
+								$(".btnTop").removeClass("hide");
+							});
+						}
+					};
+					xhr.upload.onprogress = function(e){
+						if(e.lengthComputable) {
+							loadingStartC(e.loaded/e.total*100 | 0);
+						}else{
+							loadingStart();
+						}
+					}
 					xhr.onload = function() {
 						$(".divLoad").load(document.URL+" .divLoad",function(){
 							loadingEnd();
 							forClickable();
-							$(".uploadModule").hide();
+							$("input[type='file']").val("");
+							$(".btnTop").removeClass("hide");
 						});
 			  		};
+
 				    xhr.send(fd);
 				}
 			});
