@@ -24,3 +24,13 @@ What's new :
 * Delete Directory/File
 * Upload File
 * Rename Directory/File
+
+Version 0.2
+------------------
+Release date : 
+November 06, 2014 (05:00 PM)
+
+What's new : 
+* Unzip file archives 
+* Upload file fixed drag & drop
+* Loading status bar fixed
