@@ -17,7 +17,7 @@ Demo
 Version 0.1
 ------------------
 Release date : 
-November 06, 2014
+November 06, 2014 (01:00 AM)
 
 What's new : 
 * Create Directory
