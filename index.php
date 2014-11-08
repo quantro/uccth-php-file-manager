@@ -3,7 +3,7 @@
 
 	define("SiteTitle", "uccth data bank");
 	define("SiteDescription", "simple server file processing");
-	define("SiteAccess","AMMAl07u513021996");
+	define("SiteAccess","qwerty12345");
 
 	if(isset($_COOKIE["access_login"])){
 		if($_COOKIE["access_login"]!=md5(SiteAccess)){
