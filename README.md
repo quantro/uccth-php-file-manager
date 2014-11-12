@@ -34,3 +34,15 @@ What's new :
 * Unzip file archives 
 * Upload file fixed drag & drop
 * Loading status bar fixed
+
+Version 0.3
+------------------
+Release date : 
+November 12, 2014 (14:15 PM)
+
+What's new : 
+* New Intefaces
+* Added public directory/folder
+* Unzip file archives (removed will added in next version)
+* Upload file fixed drag & drop (fixed some error and improve some thing)
+* Other minor bug fixes
